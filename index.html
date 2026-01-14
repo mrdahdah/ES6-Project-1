@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ES6 Smart Activity Feed</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Smart Activity Feed</h1>
+      <div class="controls">
+        <input id="search" placeholder="Search posts or people..." />
+        <select id="filter">
+          <option value="all">All</option>
+          <option value="text">Text</option>
+          <option value="image">Image</option>
+        </select>
+      </div>
+    </header>
+
+    <section class="composer">
+      <textarea id="new-text" placeholder="Share something..."></textarea>
+      <div class="composer-actions">
+        <button id="post-btn">Post</button>
+        <small id="status">Live: connected</small>
+      </div>
+    </section>
+
+    <main id="feed" class="feed" aria-live="polite"></main>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
