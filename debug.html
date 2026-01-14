@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Debug Feed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-4">
+  <h1 class="text-2xl font-bold mb-4">Debug: Sample Posts</h1>
+  <pre id="debug"></pre>
+  
+  <h2 class="text-xl font-bold mt-4 mb-2">Feed Container</h2>
+  <div id="feed" class="border border-gray-300 p-4 min-h-64"></div>
+
+  <script type="module">
+    // Import data
+    const { SAMPLE_POSTS } = await import('./data/samplePosts.js');
+    const { makePostElement } = await import('./js/components/post.js');
+    
+    // Debug: show raw data
+    document.getElementById('debug').textContent = JSON.stringify(SAMPLE_POSTS, null, 2);
+    
+    // Test: render first post
+    if (SAMPLE_POSTS.length > 0) {
+      const post = SAMPLE_POSTS[0];
+      console.log('Rendering post:', post);
+      
+      const node = makePostElement(post, {
+        currentUser: 'You',
+        onLike: (id) => console.log('Liked:', id),
+        onComment: (id, text) => console.log('Commented:', id, text),
+        onEdit: (id, data) => console.log('Edited:', id, data),
+        onDelete: (id) => console.log('Deleted:', id),
+        onSave: (id) => console.log('Saved:', id),
+        onReact: (id, type) => console.log('Reacted:', id, type)
+      });
+      
+      if (node) {
+        document.getElementById('feed').appendChild(node);
+        console.log('Post rendered successfully');
+      } else {
+        console.error('makePostElement returned null');
+      }
+    }
+  </script>
+</body>
+</html>

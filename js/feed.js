@@ -21,7 +21,11 @@ export default class FeedApp {
     // seed
     this.state = JSON.parse(localStorage.getItem('feed-state')) || SAMPLE_POSTS.slice();
     // normalize fields
-    this.state.forEach(p => { p.likedBy = p.likedBy || []; p.saved = !!p.saved; });
+    this.state.forEach(p => { 
+      p.likedBy = p.likedBy || []; 
+      p.saved = !!p.saved;
+      p.reactions = p.reactions || {};
+    });
     this.render();
   }
 
@@ -153,4 +157,6 @@ export default class FeedApp {
     this.container.appendChild(list);
 
     if (this.activityPanel){ this.activityPanel.render(this.state, this.currentAccount); }
+  }
+
 } 

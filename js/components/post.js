@@ -1,4 +1,4 @@
-import { initials, avatarUrl } from '../utils.js';
+import { initials } from '../utils.js';
 
 export function makePostElement(post, { currentUser, onLike, onComment, onEdit, onDelete, onSave, onReact } = {}){
   const article = document.createElement('article');
@@ -13,7 +13,7 @@ export function makePostElement(post, { currentUser, onLike, onComment, onEdit, 
 
   article.innerHTML = `
     <div class="meta flex items-start gap-3">
-      <div class="avatar w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center font-semibold">${escapeHTML(initials(post.user))}</div>
+      <div class="avatar w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center font-semibold text-white cursor-pointer" role="button" tabindex="0">${escapeHTML(initials(post.user))}</div>
       <div class="flex-1">
         <div class="username font-semibold">${escapeHTML(post.user)}</div>
         <div class="time text-sm text-slate-500">${escapeHTML(postTime(post.timestamp))}</div>
@@ -31,22 +31,12 @@ export function makePostElement(post, { currentUser, onLike, onComment, onEdit, 
     <div class="comments mt-3" hidden></div>
   `;
 
-  // replace avatar placeholder with an img and wire profile popup
-  const avatarEl = document.createElement('div');
-  avatarEl.className = 'w-full h-full overflow-hidden rounded-full';
-  const img = document.createElement('img');
-  img.src = avatarUrl(post.user, post.email);
-  img.alt = post.user;
-  img.className = 'w-full h-full object-cover';
-  avatarEl.appendChild(img);
-  const avatarContainer = article.querySelector('.avatar');
-  avatarContainer.innerHTML = '';
-  avatarContainer.appendChild(avatarEl);
-  avatarContainer.style.cursor = 'pointer';
-  avatarContainer.addEventListener('click', ()=>{
+  // wire avatar click for profile
+  const avatarEl = article.querySelector('.avatar');
+  avatarEl.addEventListener('click', ()=>{
     import('../profile.js').then(mod => {
       const posts = (window.App && window.App.state) ? window.App.state.filter(pp => pp.user === post.user) : [];
-      mod.showProfile(post.user, post.email, posts);
+      mod.showProfile(post.user, '', posts);
     });
   });
 

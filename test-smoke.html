@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Feed Smoke Test</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-6">
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4">🧪 Feed Smoke Tests</h1>
+    
+    <div id="tests" class="space-y-2"></div>
+    
+    <button onclick="runAllTests()" class="btn btn-primary mt-4">Run All Tests</button>
+  </div>
+
+  <script type="module">
+    window.runAllTests = async () => {
+      const resultsEl = document.getElementById('tests');
+      resultsEl.innerHTML = '<p class="text-gray-600">Running tests...</p>';
+      
+      const tests = [
+        { name: 'Data Import', fn: testDataImport },
+        { name: 'Post Component', fn: testPostComponent },
+        { name: 'Feed App Init', fn: testFeedAppInit },
+        { name: 'Feed Rendering', fn: testFeedRendering },
+        { name: 'Like Toggle', fn: testLikeToggle },
+        { name: 'Comment Add', fn: testCommentAdd }
+      ];
+
+      const results = [];
+      for (const test of tests) {
+        try {
+          await test.fn();
+          results.push({ name: test.name, pass: true, error: null });
+        } catch (e) {
+          results.push({ name: test.name, pass: false, error: e.message });
+        }
+      }
+
+      resultsEl.innerHTML = results.map(r => 
+        `<div class="p-3 rounded ${r.pass ? 'bg-green-100 text-green-900' : 'bg-red-100 text-red-900'}">
+          <strong>${r.pass ? '✅' : '❌'} ${r.name}</strong>
+          ${r.error ? `<p class="text-sm">${r.error}</p>` : ''}
+        </div>`
+      ).join('');
+    };
+
+    async function testDataImport() {
+      const { SAMPLE_POSTS } = await import('./data/samplePosts.js');
+      if (!SAMPLE_POSTS || !Array.isArray(SAMPLE_POSTS) || SAMPLE_POSTS.length < 4) {
+        throw new Error('SAMPLE_POSTS not loaded correctly');
+      }
+    }
+
+    async function testPostComponent() {
+      const { makePostElement } = await import('./js/components/post.js');
+      const { SAMPLE_POSTS } = await import('./data/samplePosts.js');
+      const post = SAMPLE_POSTS[0];
+      const node = makePostElement(post, { currentUser: 'You' });
+      if (!node || node.tagName !== 'ARTICLE') {
+        throw new Error('Post element not created');
+      }
+    }
+
+    async function testFeedAppInit() {
+      const FeedApp = (await import('./js/feed.js')).default;
+      const { SAMPLE_POSTS } = await import('./data/samplePosts.js');
+      const container = document.createElement('div');
+      const app = new FeedApp(container);
+      app.init();
+      if (!app.state || app.state.length < 4) {
+        throw new Error('Feed state not initialized');
+      }
+    }
+
+    async function testFeedRendering() {
+      const FeedApp = (await import('./js/feed.js')).default;
+      const container = document.createElement('div');
+      const app = new FeedApp(container);
+      app.init();
+      app.render();
+      const posts = container.querySelectorAll('[data-id]');
+      if (posts.length < 4) {
+        throw new Error(`Expected >=4 posts, got ${posts.length}`);
+      }
+    }
+
+    async function testLikeToggle() {
+      const FeedApp = (await import('./js/feed.js')).default;
+      const container = document.createElement('div');
+      const app = new FeedApp(container);
+      app.init();
+      const firstId = app.state[0].id;
+      const likeBefore = (app.state[0].likedBy || []).length;
+      app.likePost(firstId);
+      const likeAfter = (app.state[0].likedBy || []).length;
+      if (likeBefore === likeAfter) {
+        throw new Error('Like toggle did not work');
+      }
+    }
+
+    async function testCommentAdd() {
+      const FeedApp = (await import('./js/feed.js')).default;
+      const container = document.createElement('div');
+      const app = new FeedApp(container);
+      app.init();
+      const firstId = app.state[0].id;
+      const commentsBefore = (app.state[0].comments || []).length;
+      app.commentPost(firstId, 'Test comment');
+      const commentsAfter = (app.state[0].comments || []).length;
+      if (commentsBefore + 1 !== commentsAfter) {
+        throw new Error('Comment not added');
+      }
+    }
+  </script>
+</body>
+</html>
