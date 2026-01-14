@@ -1,0 +1,11 @@
+{
+  "name": "es6-activity-feed",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test --retries=1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  }
+}

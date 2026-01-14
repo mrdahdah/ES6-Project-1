@@ -31,3 +31,26 @@ body{margin:0;background:#f3f6f8;color:#111}
 .comment-input input{flex:1;padding:6px;border-radius:6px;border:1px solid #ddd}
 .small{font-size:.85rem;color:#6b7280}
 @media(max-width:520px){.topbar{flex-direction:column;align-items:flex-start}.controls{width:100%;margin-top:8px}}
+
+/* Small overrides for compatibility with Tailwind/DaisyUI */
+.post.live{outline:3px solid rgba(10,102,194,0.06)}
+.avatar{display:flex;align-items:center;justify-content:center;font-weight:700}
+.activity-item{padding:8px;border-radius:6px}
+.activity-item:hover{background:#f8fafc}
+
+/* Toast styles */
+.toast{background:#ffffff;border:1px solid rgba(2,6,23,0.06);padding:10px 14px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.06);display:flex;gap:12px;align-items:center;transform:translateY(8px);opacity:0;transition:transform .22s ease,opacity .22s ease}
+.toast.show{transform:translateY(0);opacity:1}
+.toast .actions{margin-left:auto;display:flex;gap:8px}
+
+/* Attach preview */
+#attach-preview img{max-width:100%;border-radius:8px;display:block}
+
+/* Profile modal */
+.profile-modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:flex;align-items:center;justify-content:center;z-index:60}
+.profile-modal{background:white;padding:18px;border-radius:12px;max-width:420px;width:96%;box-shadow:0 12px 40px rgba(2,6,23,0.12)}
+.profile-modal .avatar{width:72px;height:72px}
+.profile-modal .recent{max-height:200px;overflow:auto;margin-top:10px}
+.profile-modal .close-btn{margin-left:auto}
+
+

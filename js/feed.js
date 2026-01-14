@@ -1,6 +1,7 @@
 import { SAMPLE_POSTS } from '../data/samplePosts.js';
 import { makePostElement } from './components/post.js';
 import { LiveAPI } from './api.js';
+import { showToast } from './toast.js';
 import { uid } from './utils.js';
 
 export default class FeedApp {
@@ -10,6 +11,8 @@ export default class FeedApp {
     this.filter = 'all';
     this.search = '';
     this._lastDeleted = null;
+    this.currentAccount = 'You';
+    this.activityPanel = null;
 
     LiveAPI.addEventListener('new-post', e => this.addPost(e.detail, true));
   }
@@ -17,12 +20,17 @@ export default class FeedApp {
   init(){
     // seed
     this.state = JSON.parse(localStorage.getItem('feed-state')) || SAMPLE_POSTS.slice();
+    // normalize fields
+    this.state.forEach(p => { p.likedBy = p.likedBy || []; p.saved = !!p.saved; });
     this.render();
   }
 
   save(){ localStorage.setItem('feed-state', JSON.stringify(this.state)); }
 
   addPost(post, isLive=false){
+    post.likedBy = post.likedBy || [];
+    post.saved = !!post.saved;
+    post.reactions = post.reactions || {};
     this.state.unshift(post);
     this.save();
     this.render();
@@ -31,19 +39,30 @@ export default class FeedApp {
       el && el.classList.add('live');
       setTimeout(()=> el && el.classList.remove('live'), 2000);
       this.showMessage('New live update received', 2500);
+      // show native notification when permission is granted
+      try{
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted'){
+          new Notification(`New post from ${post.user}`, { body: (post.text||'').slice(0,120) });
+        }
+      }catch(e){}
     }
   }
 
   likePost(id){
     const p = this.state.find(x=>x.id===id); if (!p) return;
-    p.likes = (p.likes||0) + 1;
+    const user = this.currentAccount || 'You';
+    p.likedBy = p.likedBy || [];
+    const idx = p.likedBy.indexOf(user);
+    if (idx === -1) p.likedBy.push(user);
+    else p.likedBy.splice(idx,1);
+    p.likes = (p.likedBy || []).length;
     this.save(); this.render();
   }
 
   commentPost(id, text){
     const p = this.state.find(x=>x.id===id); if (!p) return;
     p.comments = p.comments||[];
-    p.comments.push({ id: uid('c-'), user: 'You', text });
+    p.comments.push({ id: uid('c-'), user: this.currentAccount || 'You', text });
     this.save(); this.render();
   }
 
@@ -59,12 +78,9 @@ export default class FeedApp {
     const [removed] = this.state.splice(idx,1);
     this._lastDeleted = { post: removed, index: idx };
     this.save(); this.render();
-    this.showMessage('Post deleted — <a href="#" id="undo">Undo</a>', 5000);
-    // attach undo handler
-    setTimeout(()=>{ if (this._lastDeleted) this._lastDeleted = null; }, 5500);
-    // event delegation for undo link
-    const undoLink = document.getElementById('undo');
-    if (undoLink){ undoLink.addEventListener('click', (e)=>{ e.preventDefault(); this.undoDelete(); }); }
+    // show toast with undo
+    showToast('Post deleted', { actionLabel: 'Undo', action: () => this.undoDelete(), duration: 6000 });
+    setTimeout(()=>{ if (this._lastDeleted) this._lastDeleted = null; }, 6500);
   }
 
   undoDelete(){
@@ -74,6 +90,26 @@ export default class FeedApp {
     this.save(); this.render();
     this.showMessage('Delete undone', 2000);
   }
+
+  toggleSave(id){
+    const p = this.state.find(x=>x.id===id); if (!p) return;
+    p.saved = !p.saved;
+    this.save(); this.render();
+    this.showMessage(p.saved ? 'Saved post' : 'Removed saved', 1500);
+  }
+
+  toggleReaction(id, type){
+    const p = this.state.find(x=>x.id===id); if (!p) return;
+    p.reactions = p.reactions || {};
+    p.reactions[type] = p.reactions[type] || [];
+    const user = this.currentAccount || 'You';
+    const idx = p.reactions[type].indexOf(user);
+    if (idx === -1) p.reactions[type].push(user);
+    else p.reactions[type].splice(idx,1);
+    this.save(); this.render();
+  }
+
+  setAccount(name){ this.currentAccount = name; this.showMessage(`${name} active`, 1500); this.render(); }
 
   setFilter(f){ this.filter = f; this.render(); }
   setSearch(s){ this.search = s; this.render(); }
@@ -101,10 +137,13 @@ export default class FeedApp {
     } else {
       filtered.forEach(p => {
         const node = makePostElement(p, {
+          currentUser: this.currentAccount,
           onLike: (id) => this.likePost(id),
           onComment: (id, text) => this.commentPost(id, text),
           onEdit: (id, data) => this.editPost(id, data),
-          onDelete: (id) => this.deletePost(id)
+          onDelete: (id) => this.deletePost(id),
+          onSave: (id) => this.toggleSave(id),
+          onReact: (id, type) => this.toggleReaction(id, type)
         });
         list.appendChild(node);
       });
@@ -112,5 +151,6 @@ export default class FeedApp {
 
     this.container.innerHTML = '';
     this.container.appendChild(list);
-  }
+
+    if (this.activityPanel){ this.activityPanel.render(this.state, this.currentAccount); }
 } 
