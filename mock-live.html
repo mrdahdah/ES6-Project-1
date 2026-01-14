@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mock Live Controller</title>
+  <style>body{font-family:Arial;padding:18px}</style>
+</head>
+<body>
+  <h2>Mock Live Controller</h2>
+  <button id="manual">Send Manual Live Post</button>
+  <button id="auto">Start Auto (5s)</button>
+  <script type="module">
+    import { sendLiveNow, startLive, stopLive } from './js/api.js';
+    const btn = document.getElementById('manual');
+    btn.addEventListener('click', ()=> sendLiveNow());
+    let id = null;
+    const auto = document.getElementById('auto');
+    auto.addEventListener('click', ()=>{
+      if (!id){ id = startLive(5000); auto.textContent='Stop Auto'; }
+      else { stopLive(); id = null; auto.textContent='Start Auto (5s)'; }
+    });
+  </script>
+</body>
+</html>

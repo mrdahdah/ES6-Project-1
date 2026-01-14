@@ -18,5 +18,25 @@ export const SAMPLE_POSTS = [
     likes: 2,
     comments: [],
     type: 'text'
+  },
+  {
+    id: 'p3',
+    user: 'Design Bot',
+    text: 'A neat mockup I made',
+    timestamp: Date.now() - 1000 * 60 * 5,
+    likes: 1,
+    comments: [],
+    type: 'image',
+    url: 'https://picsum.photos/seed/design/600/300'
+  },
+  {
+    id: 'p4',
+    user: 'Sam',
+    text: 'Checkout this article',
+    timestamp: Date.now() - 1000 * 60 * 3,
+    likes: 0,
+    comments: [],
+    type: 'link',
+    url: 'https://example.com'
   }
 ];

@@ -9,6 +9,7 @@ export default class FeedApp {
     this.state = [];
     this.filter = 'all';
     this.search = '';
+    this._lastDeleted = null;
 
     LiveAPI.addEventListener('new-post', e => this.addPost(e.detail, true));
   }
@@ -29,6 +30,7 @@ export default class FeedApp {
       const el = this.container.querySelector('[data-id]');
       el && el.classList.add('live');
       setTimeout(()=> el && el.classList.remove('live'), 2000);
+      this.showMessage('New live update received', 2500);
     }
   }
 
@@ -45,8 +47,43 @@ export default class FeedApp {
     this.save(); this.render();
   }
 
+  editPost(id, data){
+    const p = this.state.find(x=>x.id===id); if (!p) return;
+    Object.assign(p, data);
+    this.save(); this.render();
+    this.showMessage('Post updated', 2000);
+  }
+
+  deletePost(id){
+    const idx = this.state.findIndex(x=>x.id===id); if (idx === -1) return;
+    const [removed] = this.state.splice(idx,1);
+    this._lastDeleted = { post: removed, index: idx };
+    this.save(); this.render();
+    this.showMessage('Post deleted — <a href="#" id="undo">Undo</a>', 5000);
+    // attach undo handler
+    setTimeout(()=>{ if (this._lastDeleted) this._lastDeleted = null; }, 5500);
+    // event delegation for undo link
+    const undoLink = document.getElementById('undo');
+    if (undoLink){ undoLink.addEventListener('click', (e)=>{ e.preventDefault(); this.undoDelete(); }); }
+  }
+
+  undoDelete(){
+    if (!this._lastDeleted) return;
+    this.state.splice(this._lastDeleted.index, 0, this._lastDeleted.post);
+    this._lastDeleted = null;
+    this.save(); this.render();
+    this.showMessage('Delete undone', 2000);
+  }
+
   setFilter(f){ this.filter = f; this.render(); }
   setSearch(s){ this.search = s; this.render(); }
+
+  showMessage(msg, t=2000){
+    const status = document.getElementById('status');
+    if (!status) return;
+    status.innerHTML = msg;
+    if (t) setTimeout(()=>{ status.innerHTML = 'Live: connected'; }, t);
+  }
 
   render(){
     const list = document.createDocumentFragment();
@@ -56,15 +93,24 @@ export default class FeedApp {
       return true;
     });
 
-    filtered.forEach(p => {
-      const node = makePostElement(p, {
-        onLike: (id) => this.likePost(id),
-        onComment: (id, text) => this.commentPost(id, text)
+    if (filtered.length === 0){
+      const e = document.createElement('div');
+      e.className = 'post';
+      e.innerHTML = '<div class="small">No posts yet — create one!</div>';
+      list.appendChild(e);
+    } else {
+      filtered.forEach(p => {
+        const node = makePostElement(p, {
+          onLike: (id) => this.likePost(id),
+          onComment: (id, text) => this.commentPost(id, text),
+          onEdit: (id, data) => this.editPost(id, data),
+          onDelete: (id) => this.deletePost(id)
+        });
+        list.appendChild(node);
       });
-      list.appendChild(node);
-    });
+    }
 
     this.container.innerHTML = '';
     this.container.appendChild(list);
   }
-}
+} 

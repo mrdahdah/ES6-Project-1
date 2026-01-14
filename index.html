@@ -11,19 +11,32 @@
     <header class="topbar">
       <h1>Smart Activity Feed</h1>
       <div class="controls">
+        <select id="account" title="Active account">
+          <option value="You">You</option>
+          <option value="Alice Johnson">Alice Johnson</option>
+          <option value="Charles Kim">Charles Kim</option>
+        </select>
         <input id="search" placeholder="Search posts or people..." />
         <select id="filter">
           <option value="all">All</option>
           <option value="text">Text</option>
           <option value="image">Image</option>
+          <option value="link">Link</option>
         </select>
+        <button id="send-live" class="button small">Send Live</button>
       </div>
     </header>
 
     <section class="composer">
       <textarea id="new-text" placeholder="Share something..."></textarea>
+      <input id="extra-url" placeholder="Image or link URL (optional)" />
       <div class="composer-actions">
-        <button id="post-btn">Post</button>
+        <select id="post-type">
+          <option value="text">Text</option>
+          <option value="image">Image</option>
+          <option value="link">Link</option>
+        </select>
+        <button id="post-btn" class="button primary">Post</button>
         <small id="status">Live: connected</small>
       </div>
     </section>

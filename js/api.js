@@ -15,10 +15,14 @@ function randomPost() {
   };
 }
 
-// Start emitting a new-post update every 12s
-export function startLive() {
-  setInterval(() => {
+let _intervalId = null;
+export function startLive(intervalMs = 12000) {
+  stopLive();
+  _intervalId = setInterval(() => {
     const p = randomPost();
     LiveAPI.dispatchEvent(new CustomEvent('new-post', { detail: p }));
-  }, 12000);
+  }, intervalMs);
+  return _intervalId;
 }
+export function stopLive(){ if (_intervalId) clearInterval(_intervalId); _intervalId = null; }
+export function sendLiveNow(post){ const p = post || randomPost(); LiveAPI.dispatchEvent(new CustomEvent('new-post',{detail:p})); return p; }
